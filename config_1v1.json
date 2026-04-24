@@ -1,0 +1,12 @@
+{
+  "players": [
+    {
+      "name": "HBW",
+      "path": "archive/old_build_outputs/dist/hbw.exe"
+    },
+    {
+      "name": "XJY",
+      "path": "bin/final_bots/xjy.exe"
+    }
+  ]
+}

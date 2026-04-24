@@ -1,0 +1,23 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local IDE files
+.idea/
+
+# PyInstaller outputs
+build/
+dist/
+*.spec
+
+# Large executable artifacts are ignored by default.
+# Keep only curated final runtime files under bin/.
+*.exe
+!bin/
+!bin/**
+!bin/**/*.exe
+
+# Archived build products stay local unless explicitly restored.
+archive/old_build_outputs/
+archive/old_judges/
