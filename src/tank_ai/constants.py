@@ -1,0 +1,16 @@
+"""Constants shared by the rule-based tank bot."""
+
+SCORE_INVALID = -float("inf")
+SCORE_BULLET_HIT = -100000.0
+SCORE_TRAP_BASE = -50000.0
+
+WEIGHT_SURVIVAL_DEPTH = 1000.0
+WEIGHT_MOBILITY = 10.0
+WEIGHT_CENTER = 2.0
+WEIGHT_AIM = 50.0
+WEIGHT_CONTINUITY = 5.0
+
+DIRS = {"UP": (0, -1), "DOWN": (0, 1), "LEFT": (-1, 0), "RIGHT": (1, 0)}
+DIR_LIST = ["UP", "DOWN", "LEFT", "RIGHT"]
+OPPOSITE = {"UP": "DOWN", "DOWN": "UP", "LEFT": "RIGHT", "RIGHT": "LEFT"}
+

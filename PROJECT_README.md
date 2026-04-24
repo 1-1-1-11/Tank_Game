@@ -38,6 +38,7 @@ The repository is organized for portfolio review while still keeping local histo
 
 - `src/bots/xjy.py`: main bot source.
 - `src/bots/xjy1v1.py`: 1v1 strategy version.
+- `src/tank_ai/`: extracted rule, danger, mobility, trap, and scoring helpers used by the main bot.
 - `src/bots/demo/`: small demo bots used by the public sample configs.
 - `bin/final_bots/xjy.exe`: packaged main bot.
 - `bin/judges/judge.exe`: standard judge.
@@ -45,6 +46,15 @@ The repository is organized for portfolio review while still keeping local histo
 - `bin/judges/judge_1v1_final_10.exe`: retained final 1v1 judge.
 - `src/archive_versions/`: historical Python strategy versions.
 - `archive/old_build_outputs/`: local-only old PyInstaller outputs and opponent executables. This folder is ignored by Git.
+
+## Specs
+
+The MVP refactor is documented under `docs/specs/`:
+
+- `PRD.md`: product goals, audience, MVP boundaries, and non-goals.
+- `TECH_SPEC.md`: current protocol, decision pipeline, and module responsibilities.
+- `MVP_PLAN.md`: implementation steps and acceptance criteria.
+- `AI_CODING_GUIDE.md`: rules for future AI-assisted development.
 
 ## Configs
 
@@ -105,7 +115,7 @@ Run the 1v1 judge:
 To rebuild the main bot:
 
 ```powershell
-pyinstaller --onefile --clean .\src\bots\xjy.py
+pyinstaller --onefile --clean --paths .\src .\src\bots\xjy.py
 ```
 
 PyInstaller will create new `build/` and `dist/` folders. Those folders are ignored by Git. After verifying a new executable, manually replace `bin/final_bots/xjy.exe` if needed.
