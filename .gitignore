@@ -3,8 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Local IDE files
+# Local IDE and workflow files
 .idea/
+.spec-workflow/
+
+# Local-only configs that may reference ignored archive executables
+config.local.json
+config_1v1.local.json
 
 # PyInstaller outputs
 build/
@@ -12,11 +17,16 @@ dist/
 *.spec
 
 # Large executable artifacts are ignored by default.
-# Keep only curated final runtime files under bin/.
 *.exe
+
+# Keep only curated final runtime files under bin/.
 !bin/
-!bin/**
-!bin/**/*.exe
+!bin/final_bots/
+!bin/final_bots/xjy.exe
+!bin/judges/
+!bin/judges/judge.exe
+!bin/judges/judge_pro.exe
+!bin/judges/judge_1v1_final_10.exe
 
 # Archived build products stay local unless explicitly restored.
 archive/old_build_outputs/

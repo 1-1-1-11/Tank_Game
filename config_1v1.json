@@ -1,8 +1,8 @@
 {
   "players": [
     {
-      "name": "HBW",
-      "path": "archive/old_build_outputs/dist/hbw.exe"
+      "name": "DemoChase",
+      "path": "src/bots/demo/demo_ai_2.py"
     },
     {
       "name": "XJY",

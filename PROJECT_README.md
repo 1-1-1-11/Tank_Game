@@ -1,114 +1,117 @@
 # Y. L. Tank Game Bot
 
-这是一个面向 Y. L. Tank Game 比赛规则开发的 Python 坦克对战 Bot。项目重点不是训练模型，而是在裁判每一帧给出的地图、坦克、墙体和子弹状态下，快速返回一个合法且尽量安全的移动方向。
+This project is a rule-based Python bot for the Y. L. Tank Game competition. It is not a machine-learning system or a full game engine. The core work is real-time decision making under a fixed judge protocol: each turn receives the current map, tanks, walls, and bullets, then returns one move direction.
 
-当前目录已按作品集展示整理：主版本源码、最终可执行文件、裁判程序、历史实验版本和展示材料分开放置。旧版本没有删除，只是归档到 `archive/` 或 `src/archive_versions/`，方便之后回看迭代过程。
+The repository is organized for portfolio review while still keeping local historical material. Source code and curated runtime files are tracked by Git. Old build outputs and historical opponent executables are kept locally under `archive/old_build_outputs/`, but they are intentionally ignored and are not part of the public repository.
 
 ## Project Positioning
 
-- 类型：规则驱动的坦克对战 AI Bot
-- 语言：Python
-- 主要能力：局面评分、子弹规避、死胡同预判、火力线判断、Pro 规则适配
-- 适合展示：算法建模、启发式搜索、竞赛策略迭代、工程归档能力
+- Type: rule-based tank battle bot
+- Language: Python
+- Focus: state evaluation, bullet avoidance, trap detection, fire-line checks, Pro rule handling
+- Good for showing: algorithmic modeling, heuristic search, competition strategy iteration, project cleanup
 
-这个项目不应夸大成完整游戏引擎或深度学习系统。它更准确的定位是一个围绕比赛规则优化的实时决策程序。
-
-## Directory Structure
+## Repository Structure
 
 ```text
 .
-├─ config.json
-├─ config_1v1.json
-├─ src/
-│  ├─ bots/
-│  │  ├─ xjy.py
-│  │  ├─ xjy1v1.py
-│  │  └─ demo/
-│  └─ archive_versions/
-├─ bin/
-│  ├─ judges/
-│  └─ final_bots/
-├─ docs/
-│  ├─ images/
-│  └─ XJY.pptx
-├─ archive/
-│  ├─ old_judges/
-│  ├─ old_build_outputs/
-│  ├─ old_specs/
-│  └─ experiments/
-└─ .spec-workflow/
+|-- README.md
+|-- PROJECT_README.md
+|-- config.json
+|-- config_1v1.json
+|-- src/
+|   |-- bots/
+|   |   |-- xjy.py
+|   |   |-- xjy1v1.py
+|   |   `-- demo/
+|   `-- archive_versions/
+|-- bin/
+|   |-- judges/
+|   `-- final_bots/
+|-- docs/
+|   |-- images/
+|   `-- XJY.pptx
+`-- archive/
 ```
 
 ## Main Files
 
-- `src/bots/xjy.py`：当前主版本 Bot 源码。
-- `src/bots/xjy1v1.py`：1v1 规则下的策略版本。
-- `bin/final_bots/xjy.exe`：主版本 Bot 的最终打包文件。
-- `bin/judges/judge.exe`：常规裁判程序。
-- `bin/judges/judge_pro.exe`：Pro 规则裁判程序。
-- `bin/judges/judge_1v1_final_10.exe`：保留的 1v1 最终裁判版本。
-- `src/archive_versions/`：历史 Python 策略版本。
-- `archive/old_build_outputs/`：旧的 PyInstaller 构建产物和历史对手 exe。
+- `src/bots/xjy.py`: main bot source.
+- `src/bots/xjy1v1.py`: 1v1 strategy version.
+- `src/bots/demo/`: small demo bots used by the public sample configs.
+- `bin/final_bots/xjy.exe`: packaged main bot.
+- `bin/judges/judge.exe`: standard judge.
+- `bin/judges/judge_pro.exe`: Pro-rule judge.
+- `bin/judges/judge_1v1_final_10.exe`: retained final 1v1 judge.
+- `src/archive_versions/`: historical Python strategy versions.
+- `archive/old_build_outputs/`: local-only old PyInstaller outputs and opponent executables. This folder is ignored by Git.
+
+## Configs
+
+- `config.json`: public, GitHub-friendly sample config. It only points to tracked files.
+- `config_1v1.json`: public, GitHub-friendly 1v1 sample config.
+- `config.local.json`: local full-match config for archived opponent executables. Ignored by Git.
+- `config_1v1.local.json`: local 1v1 config for archived opponent executables. Ignored by Git.
+
+Use the public configs when cloning or reviewing the repository. Use the local configs only on this machine, where the archived opponent executables still exist.
 
 ## Strategy Overview
 
-主版本 Bot 的决策入口是 `TankAI.get_action(state)`。裁判通过标准输入传入 JSON 状态，Bot 输出 `UP`、`DOWN`、`LEFT` 或 `RIGHT`。
+The main entry point is `TankAI.get_action(state)`. The judge sends a JSON state through standard input, and the bot returns one of `UP`, `DOWN`, `LEFT`, or `RIGHT`.
 
-核心策略包括：
+The main strategy includes:
 
-- 移动合法性检查：避免越界、撞墙和 Pro 规则下的立即反向。
-- 子弹危险判断：按子弹每帧移动两格的规则模拟下一步风险，并考虑墙体阻挡。
-- 机动性评分：用 BFS 估计目标位置附近的可活动空间。
-- 陷阱预判：用 DFS 或静态地图分析判断进入某个方向后是否会被困在死胡同。
-- 进攻评分：检查移动后是否能沿当前方向瞄准敌人。
-- 稳定性处理：在多个候选方向接近时，减少无意义抖动。
+- Legal move checks: avoid walls, boundaries, and immediate reverse moves under Pro rules.
+- Bullet risk checks: simulate bullets moving two cells per frame and account for wall blocking.
+- Mobility scoring: use BFS to estimate available space around candidate positions.
+- Trap prediction: use DFS/static map analysis to avoid entering dead ends.
+- Attack scoring: check whether the bot can aim at an enemy after moving.
+- Stability scoring: reduce unnecessary direction jitter.
 
 ## Run
 
-先确认 Python 环境：
+Check Python:
 
 ```powershell
-python --version
+py --version
 ```
 
-如果要直接检查源码语法：
+Compile-check the main source:
 
 ```powershell
-python -m py_compile .\src\bots\xjy.py
+py -m py_compile .\src\bots\xjy.py
 ```
 
-运行常规裁判：
+Run the standard judge:
 
 ```powershell
 .\bin\judges\judge.exe
 ```
 
-运行 Pro 裁判：
+Run the Pro judge:
 
 ```powershell
 .\bin\judges\judge_pro.exe
 ```
 
-运行 1v1 裁判：
+Run the 1v1 judge:
 
 ```powershell
 .\bin\judges\judge_1v1_final_10.exe
 ```
 
-`config.json` 和 `config_1v1.json` 已更新为整理后的相对路径。历史对手 exe 保留在 `archive/old_build_outputs/dist/`，主 Bot 使用 `bin/final_bots/xjy.exe`。
-
 ## Packaging
 
-如需重新打包主 Bot：
+To rebuild the main bot:
 
 ```powershell
 pyinstaller --onefile --clean .\src\bots\xjy.py
 ```
 
-新的打包产物默认会进入 `dist/`。为了保持项目整洁，确认可用后再手动替换 `bin/final_bots/xjy.exe`。
+PyInstaller will create new `build/` and `dist/` folders. Those folders are ignored by Git. After verifying a new executable, manually replace `bin/final_bots/xjy.exe` if needed.
 
 ## History
 
-开发过程中保留了多个实验版本，例如 `xjy921.py`、`xjy1018.py`、`xjy1108.py`、`Gemini3.py` 和 `improved*.py`。这些文件不是当前主入口，但能反映策略从威胁图、A*、走廊风险、1v1 策略到陷阱处理的迭代过程。
+The project keeps historical strategy files such as `xjy921.py`, `xjy1018.py`, `xjy1108.py`, `Gemini3.py`, and `improved*.py` under `src/archive_versions/`. They are not the current entry point, but they document the strategy evolution from threat maps and path search toward trap handling and 1v1-specific behavior.
 
-`GPT.py` 与主版本 `xjy.py` 内容一致，已作为重复留痕文件放入 `archive/experiments/`。
+`archive/experiments/GPT.py` is retained as a duplicate-name history artifact. Its content matches the main `xjy.py` version.

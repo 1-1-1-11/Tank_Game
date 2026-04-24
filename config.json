@@ -1,36 +1,16 @@
 {
   "players": [
     {
-      "name": "HBW",
-      "path": "archive/old_build_outputs/dist/hbw.exe"
+      "name": "DemoRandom",
+      "path": "src/bots/demo/demo_ai_1.py"
     },
     {
-      "name": "HW",
-      "path": "archive/old_build_outputs/dist/hw.exe"
-    },
-    {
-      "name": "WYC",
-      "path": "archive/old_build_outputs/dist/wyc.exe"
-    },
-    {
-      "name": "PYH",
-      "path": "archive/old_build_outputs/dist/pyh.exe"
-    },
-    {
-      "name": "LYJ",
-      "path": "archive/old_build_outputs/dist/lyj.exe"
-    },
-    {
-      "name": "MJF",
-      "path": "archive/old_build_outputs/dist/mjf.exe"
+      "name": "DemoChase",
+      "path": "src/bots/demo/demo_ai_2.py"
     },
     {
       "name": "XJY",
       "path": "bin/final_bots/xjy.exe"
-    },
-    {
-      "name": "HYX",
-      "path": "archive/old_build_outputs/dist/hyx.exe"
     }
   ]
 }
