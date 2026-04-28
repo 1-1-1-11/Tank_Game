@@ -2,6 +2,7 @@ import json
 import sys
 from collections import deque
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 SRC_ROOT = Path(__file__).resolve().parents[1]
 if str(SRC_ROOT) not in sys.path:
@@ -22,15 +23,27 @@ from tank_ai.traps import get_survival_depth
 
 
 class TankAI:
-    def __init__(self):
+    last_action: Optional[str]
+    was_alive: bool
+    static_walls: Optional[Set[Tuple[int, int]]]
+    mobility_map: Optional[List[List[int]]]
+    trap_lookup: dict
+    _dfs_memo: dict
+
+    def __init__(self) -> None:
         self.last_action = None
         self.was_alive = False
-        self.static_walls = None
-        self.mobility_map = None
-        self.trap_lookup = {}
-        self._dfs_memo = {}
+        self.static_walls: Optional[Set[Tuple[int, int]]] = None
+        self.mobility_map: Optional[List[List[int]]] = None
+        self.trap_lookup: dict = {}
+        self._dfs_memo: dict = {}
 
-    def _rebuild_static_maps(self, w, h, walls):
+    def _rebuild_static_maps(
+        self,
+        w: int,
+        h: int,
+        walls: Set[Tuple[int, int]],
+    ) -> None:
         self.static_walls = walls
         self.mobility_map = [[0] * h for _ in range(w)]
         self.trap_lookup = {}
@@ -47,8 +60,17 @@ class TankAI:
                     if not self._can_escape_dfs((x, y), move, w, h, walls, set(), 0):
                         self.trap_lookup[((x, y), move)] = True
 
-    def _can_escape_dfs(self, pos, last_move, w, h, walls, visiting, depth):
-        state = (pos, last_move)
+    def _can_escape_dfs(
+        self,
+        pos: Tuple[int, int],
+        last_move: str,
+        w: int,
+        h: int,
+        walls: Set[Tuple[int, int]],
+        visiting: Set[Tuple[Tuple[int, int], str]],
+        depth: int,
+    ) -> bool:
+        state: Tuple[Tuple[int, int], str] = (pos, last_move)
         if state in self._dfs_memo:
             return self._dfs_memo[state]
         if state in visiting:
@@ -56,8 +78,8 @@ class TankAI:
         if depth > 60:
             return True
         visiting.add(state)
-        can_escape = False
-        rev = OPPOSITE.get(last_move)
+        can_escape: bool = False
+        rev: Optional[str] = OPPOSITE.get(last_move)
         for move, (dx, dy) in DIRS.items():
             if move == rev:
                 continue
@@ -70,7 +92,7 @@ class TankAI:
         self._dfs_memo[state] = can_escape
         return can_escape
 
-    def get_action(self, state):
+    def get_action(self, state: Dict[str, Any]) -> str:
         try:
             me = state["self"]
 

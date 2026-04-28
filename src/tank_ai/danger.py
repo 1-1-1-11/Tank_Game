@@ -1,9 +1,19 @@
 """Immediate bullet danger checks and danger map generation."""
 
+from typing import Any, Dict, List, Set, Tuple
+
 from tank_ai.constants import DIRS
 
 
-def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
+def will_hit_bullet(
+    my_next_pos: Tuple[int, int],
+    bullets: List[Dict[str, Any]],
+    my_name: str,
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+) -> bool:
+    """Check if moving to my_next_pos would collide with a bullet."""
     mx, my = my_next_pos
 
     for bullet in bullets:
@@ -28,9 +38,16 @@ def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
     return False
 
 
-def get_danger_map(walls, bullets, my_name, map_w, map_h, danger_penalty=5000.0):
+def get_danger_map(
+    walls: Set[Tuple[int, int]],
+    bullets: List[Dict[str, Any]],
+    my_name: str,
+    map_w: int,
+    map_h: int,
+    danger_penalty: float = 5000.0,
+) -> List[List[float]]:
     """Build a 2D danger map accumulating danger from bullet paths."""
-    dmap = [[0.0] * map_w for _ in range(map_h)]
+    dmap: List[List[float]] = [[0.0] * map_w for _ in range(map_h)]
 
     for b in bullets:
         if b["owner"] == my_name:

@@ -1,11 +1,14 @@
 """Candidate move scoring for the main bot."""
 
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 from tank_ai.constants import (
     CLOCKWISE_NEXT,
     DIRS,
     SCORE_BULLET_HIT,
     SCORE_INVALID,
     SCORE_TRAP_BASE,
+    TRAP_SURVIVAL_THRESHOLD,
     WEIGHT_AIM,
     WEIGHT_CENTER,
     WEIGHT_CONTINUITY,
@@ -18,21 +21,29 @@ from tank_ai.rules import is_valid_move
 from tank_ai.traps import get_survival_depth
 
 # 1v1 scoring constants
-SCORE_SURVIVAL_1V1 = 0.0
-SCORE_TRADE_LIVES = -5000.0
-SCORE_SUICIDE = -99999.0
+SCORE_SURVIVAL_1V1: float = 0.0
+SCORE_TRADE_LIVES: float = -5000.0
+SCORE_SUICIDE: float = -99999.0
 
-MOBILITY_WEIGHT_1V1 = 10.0
-DANGER_PENALTY_1V1 = 5000.0
-TRAP_PENALTY_1V1 = 20000.0
-AIM_BONUS_1V1 = 50.0
-CIRCLE_BONUS_1V1 = 8.0
+MOBILITY_WEIGHT_1V1: float = 10.0
+DANGER_PENALTY_1V1: float = 5000.0
+TRAP_PENALTY_1V1: float = 20000.0
+AIM_BONUS_1V1: float = 50.0
+CIRCLE_BONUS_1V1: float = 8.0
 
 
-def is_aiming_enemy(my_pos, move, enemies_pos, map_w, map_h, walls):
+def is_aiming_enemy(
+    my_pos: Tuple[int, int],
+    move: str,
+    enemies_pos: Set[Tuple[int, int]],
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+) -> bool:
+    """Check if moving in given direction aims at an enemy."""
     dx, dy = DIRS[move]
     cx, cy = my_pos[0] + dx, my_pos[1] + dy
-    dist = 0
+    dist: int = 0
 
     while 0 <= cx < map_w and 0 <= cy < map_h and dist < 10:
         if (cx, cy) in walls:
@@ -46,11 +57,22 @@ def is_aiming_enemy(my_pos, move, enemies_pos, map_w, map_h, walls):
     return False
 
 
-def score_candidate(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, walls, last_action):
+def score_candidate(
+    move: str,
+    my_pos: Tuple[int, int],
+    my_name: str,
+    bullets: List[Dict[str, Any]],
+    enemies_pos: Set[Tuple[int, int]],
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+    last_action: Optional[str],
+) -> float:
+    """Score a candidate move for the main bot."""
     my_x, my_y = my_pos
     dx, dy = DIRS[move]
     nx, ny = my_x + dx, my_y + dy
-    score = 0.0
+    score: float = 0.0
 
     if not is_valid_move(nx, ny, move, map_w, map_h, walls, last_action, check_reverse=True):
         return SCORE_INVALID
@@ -58,18 +80,20 @@ def score_candidate(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, w
     if will_hit_bullet((nx, ny), bullets, my_name, map_w, map_h, walls):
         score += SCORE_BULLET_HIT
 
-    survival_steps = get_survival_depth((nx, ny), move, map_w, map_h, walls, max_depth=15)
+    survival_steps: int = get_survival_depth(
+        (nx, ny), move, map_w, map_h, walls, max_depth=TRAP_SURVIVAL_THRESHOLD
+    )
 
-    if survival_steps < 15:
+    if survival_steps < TRAP_SURVIVAL_THRESHOLD:
         score += SCORE_TRAP_BASE + (survival_steps * WEIGHT_SURVIVAL_DEPTH)
     else:
         if (nx, ny) in enemies_pos:
             score -= 500.0
 
-        mobility = bfs_mobility((nx, ny), map_w, map_h, walls)
+        mobility: int = bfs_mobility((nx, ny), map_w, map_h, walls)
         score += mobility * WEIGHT_MOBILITY
 
-        dist_center = abs(nx - map_w // 2) + abs(ny - map_h // 2)
+        dist_center: int = abs(nx - map_w // 2) + abs(ny - map_h // 2)
         score -= dist_center * WEIGHT_CENTER
 
         if is_aiming_enemy((nx, ny), move, enemies_pos, map_w, map_h, walls):
@@ -81,12 +105,25 @@ def score_candidate(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, w
     return score
 
 
-def score_candidate_1v1(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, walls, last_action, danger_map, trap_lookup, mobility_map):
+def score_candidate_1v1(
+    move: str,
+    my_pos: Tuple[int, int],
+    my_name: str,
+    bullets: List[Dict[str, Any]],
+    enemies_pos: Set[Tuple[int, int]],
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+    last_action: Optional[str],
+    danger_map: List[List[float]],
+    trap_lookup: dict,
+    mobility_map: List[List[int]],
+) -> float:
     """Score a candidate move using 1v1-specific logic."""
     my_x, my_y = my_pos
     dx, dy = DIRS[move]
     nx, ny = my_x + dx, my_y + dy
-    score = SCORE_SURVIVAL_1V1
+    score: float = SCORE_SURVIVAL_1V1
 
     # [1] Absolute rule checks
     if not is_valid_move(nx, ny, move, map_w, map_h, walls, last_action, check_reverse=True):
@@ -111,7 +148,7 @@ def score_candidate_1v1(move, my_pos, my_name, bullets, enemies_pos, map_w, map_
     # [6] Tactical value (only if we are not in immediate danger)
     if score > -100:
         # Aim bonus
-        aim_bonus = _get_aim_value_1v1((nx, ny), move, enemies_pos, map_w, map_h, walls)
+        aim_bonus: float = _get_aim_value_1v1((nx, ny), move, enemies_pos, map_w, map_h, walls)
         score += aim_bonus * AIM_BONUS_1V1
 
         # Mobility bonus
@@ -124,7 +161,14 @@ def score_candidate_1v1(move, my_pos, my_name, bullets, enemies_pos, map_w, map_
     return score
 
 
-def _get_aim_value_1v1(my_pos, move, enemies_pos, map_w, map_h, walls):
+def _get_aim_value_1v1(
+    my_pos: Tuple[int, int],
+    move: str,
+    enemies_pos: Set[Tuple[int, int]],
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+) -> float:
     """Check if a move aims at an enemy and return 1.0 or 0.0."""
     dx, dy = DIRS[move]
     cx, cy = my_pos[0] + dx, my_pos[1] + dy

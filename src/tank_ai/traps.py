@@ -1,11 +1,23 @@
 """Trap and survival-depth analysis."""
 
-from tank_ai.constants import DIRS, OPPOSITE
+from typing import List, Set, Tuple
+
+from tank_ai.constants import DFS_MAX_DEPTH, DIRS, OPPOSITE
 
 
-def get_survival_depth(start_pos, start_move, map_w, map_h, walls, max_depth=20):
-    stack = [(start_pos, start_move, 0, {start_pos})]
-    max_survival = 0
+def get_survival_depth(
+    start_pos: Tuple[int, int],
+    start_move: str,
+    map_w: int,
+    map_h: int,
+    walls: Set[Tuple[int, int]],
+    max_depth: int = DFS_MAX_DEPTH,
+) -> int:
+    """Calculate the maximum survival depth from start_pos using DFS."""
+    stack: List[Tuple[Tuple[int, int], str, int, Set[Tuple[int, int]]]] = [
+        (start_pos, start_move, 0, {start_pos})
+    ]
+    max_survival: int = 0
 
     while stack:
         (cx, cy), last_move, depth, visited = stack.pop()

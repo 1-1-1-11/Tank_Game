@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 SRC_ROOT = Path(__file__).resolve().parents[1]
 if str(SRC_ROOT) not in sys.path:
@@ -16,22 +17,30 @@ from tank_ai.traps import get_survival_depth
 
 
 class TankAI:
-    def __init__(self):
+    last_action: Optional[str]
+    was_alive: bool
+    map_w: int
+    map_h: int
+    walls: Set[Tuple[int, int]]
+    static_map_initialized: bool
+    memo_depth: dict
+
+    def __init__(self) -> None:
         self.last_action = None
         self.was_alive = False
 
         self.map_w = 0
         self.map_h = 0
-        self.walls = set()
+        self.walls: Set[Tuple[int, int]] = set()
         self.static_map_initialized = False
 
-        self.memo_depth = {}
+        self.memo_depth: dict = {}
 
-    def _reset_state(self):
+    def _reset_state(self) -> None:
         self.last_action = None
         self.memo_depth = {}
 
-    def _update_static_map(self, w, h, walls_list):
+    def _update_static_map(self, w: int, h: int, walls_list: List[List[int]]) -> None:
         current_walls = walls_set(walls_list)
         if (
             self.map_w == w
@@ -46,7 +55,7 @@ class TankAI:
         self.walls = current_walls
         self.static_map_initialized = True
 
-    def _is_valid_move(self, x, y, move, check_reverse=True):
+    def _is_valid_move(self, x: int, y: int, move: str, check_reverse: bool = True) -> bool:
         return is_valid_move(
             x,
             y,
@@ -58,7 +67,12 @@ class TankAI:
             check_reverse=check_reverse,
         )
 
-    def _will_hit_bullet(self, my_next_pos, bullets, my_name):
+    def _will_hit_bullet(
+        self,
+        my_next_pos: Tuple[int, int],
+        bullets: List[Dict[str, Any]],
+        my_name: str,
+    ) -> bool:
         return will_hit_bullet(
             my_next_pos,
             bullets,
@@ -68,7 +82,12 @@ class TankAI:
             self.walls,
         )
 
-    def _get_survival_depth(self, start_pos, start_move, max_depth=20):
+    def _get_survival_depth(
+        self,
+        start_pos: Tuple[int, int],
+        start_move: str,
+        max_depth: int = 20,
+    ) -> int:
         return get_survival_depth(
             start_pos,
             start_move,
@@ -78,13 +97,18 @@ class TankAI:
             max_depth=max_depth,
         )
 
-    def _bfs_mobility(self, start_pos):
+    def _bfs_mobility(self, start_pos: Tuple[int, int]) -> int:
         return bfs_mobility(start_pos, self.map_w, self.map_h, self.walls)
 
-    def _is_aiming_enemy(self, my_pos, move, enemies_pos):
+    def _is_aiming_enemy(
+        self,
+        my_pos: Tuple[int, int],
+        move: str,
+        enemies_pos: Set[Tuple[int, int]],
+    ) -> bool:
         return is_aiming_enemy(my_pos, move, enemies_pos, self.map_w, self.map_h, self.walls)
 
-    def get_action(self, state):
+    def get_action(self, state: Dict[str, Any]) -> str:
         try:
             me = state["self"]
 
