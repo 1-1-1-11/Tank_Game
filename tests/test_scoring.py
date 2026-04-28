@@ -61,7 +61,7 @@ class TestScoreCandidate:
             move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, walls, last_action
         )
 
-        assert score > SCORE_INVALID
+        assert score > 0, f"Expected positive score for open map, got {score}"
 
     def test_invalid_move_returns_score_invalid(self):
         move = "LEFT"
@@ -117,3 +117,4 @@ class TestScoreCandidate:
             move, my_pos, my_name, [], enemies_pos, map_w, map_h, walls, last_action
         )
         assert score < score_without_bullet
+        assert score < SCORE_BULLET_HIT + 1000, f"Expected bullet danger penalty, got score {score}"
