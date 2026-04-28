@@ -1,4 +1,6 @@
-"""Immediate bullet danger checks."""
+"""Immediate bullet danger checks and danger map generation."""
+
+from tank_ai.constants import DIRS
 
 
 def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
@@ -24,4 +26,26 @@ def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
             return True
 
     return False
+
+
+def get_danger_map(bullets, my_name, map_w, map_h, walls, danger_penalty=5000.0):
+    """Build a 2D danger map accumulating danger from bullet paths."""
+    dmap = [[0.0] * map_h for _ in range(map_w)]
+
+    for b in bullets:
+        if b["owner"] == my_name:
+            continue
+
+        bx, by = b["x"], b["y"]
+        bdx, bdy = b["dx"], b["dy"]
+
+        cx, cy = bx, by
+        while 0 <= cx < map_w and 0 <= cy < map_h:
+            if (cx, cy) in walls:
+                break
+            dmap[cx][cy] += danger_penalty
+            cx += bdx
+            cy += bdy
+
+    return dmap
 

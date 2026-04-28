@@ -13,4 +13,5 @@ WEIGHT_CONTINUITY = 5.0
 DIRS = {"UP": (0, -1), "DOWN": (0, 1), "LEFT": (-1, 0), "RIGHT": (1, 0)}
 DIR_LIST = ["UP", "DOWN", "LEFT", "RIGHT"]
 OPPOSITE = {"UP": "DOWN", "DOWN": "UP", "LEFT": "RIGHT", "RIGHT": "LEFT"}
+CLOCKWISE_NEXT = {"UP": "RIGHT", "RIGHT": "DOWN", "DOWN": "LEFT", "LEFT": "UP"}
 

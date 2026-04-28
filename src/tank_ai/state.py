@@ -16,3 +16,8 @@ def alive_enemies(state, my_name):
 def enemy_positions(enemies):
     return {(tank["x"], tank["y"]) for tank in enemies}
 
+
+def enemy_positions_from_tanks(tanks):
+    """Extract positions from a list of tank dicts (including self)."""
+    return {(tank["x"], tank["y"]) for tank in tanks if tank["alive"]}
+

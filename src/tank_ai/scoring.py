@@ -1,6 +1,7 @@
 """Candidate move scoring for the main bot."""
 
 from tank_ai.constants import (
+    CLOCKWISE_NEXT,
     DIRS,
     SCORE_BULLET_HIT,
     SCORE_INVALID,
@@ -11,10 +12,21 @@ from tank_ai.constants import (
     WEIGHT_MOBILITY,
     WEIGHT_SURVIVAL_DEPTH,
 )
-from tank_ai.danger import will_hit_bullet
+from tank_ai.danger import get_danger_map, will_hit_bullet
 from tank_ai.mobility import bfs_mobility
 from tank_ai.rules import is_valid_move
 from tank_ai.traps import get_survival_depth
+
+# 1v1 scoring constants
+SCORE_SURVIVAL_1V1 = 0.0
+SCORE_TRADE_LIVES = -5000.0
+SCORE_SUICIDE = -99999.0
+
+MOBILITY_WEIGHT_1V1 = 10.0
+DANGER_PENALTY_1V1 = 5000.0
+TRAP_PENALTY_1V1 = 20000.0
+AIM_BONUS_1V1 = 50.0
+CIRCLE_BONUS_1V1 = 8.0
 
 
 def is_aiming_enemy(my_pos, move, enemies_pos, map_w, map_h, walls):
@@ -67,4 +79,61 @@ def score_candidate(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, w
             score += WEIGHT_CONTINUITY
 
     return score
+
+
+def score_candidate_1v1(move, my_pos, my_name, bullets, enemies_pos, map_w, map_h, walls, last_action, danger_map, trap_lookup, mobility_map):
+    """Score a candidate move using 1v1-specific logic."""
+    my_x, my_y = my_pos
+    dx, dy = DIRS[move]
+    nx, ny = my_x + dx, my_y + dy
+    score = SCORE_SURVIVAL_1V1
+
+    # [1] Absolute rule checks
+    if not is_valid_move(nx, ny, move, map_w, map_h, walls, last_action, check_reverse=True):
+        return SCORE_SUICIDE
+
+    # [2] Bullet hit check
+    if will_hit_bullet((nx, ny), bullets, my_name, map_w, map_h, walls):
+        return SCORE_SUICIDE
+
+    # [3] Collision with enemy = trade lives
+    if (nx, ny) in enemies_pos:
+        return SCORE_TRADE_LIVES
+
+    # [4] Danger map penalty
+    if danger_map[nx][ny] > 0:
+        score -= danger_map[nx][ny]
+
+    # [5] Trap lookup penalty
+    if trap_lookup.get(((nx, ny), move), False):
+        score -= TRAP_PENALTY_1V1
+
+    # [6] Tactical value (only if we are not in immediate danger)
+    if score > -100:
+        # Aim bonus
+        aim_bonus = _get_aim_value_1v1((nx, ny), move, enemies_pos, map_w, map_h, walls)
+        score += aim_bonus * AIM_BONUS_1V1
+
+        # Mobility bonus
+        score += mobility_map[nx][ny] * MOBILITY_WEIGHT_1V1
+
+        # Circle bonus (clockwise movement around the map)
+        if last_action and move == CLOCKWISE_NEXT.get(last_action):
+            score += CIRCLE_BONUS_1V1
+
+    return score
+
+
+def _get_aim_value_1v1(my_pos, move, enemies_pos, map_w, map_h, walls):
+    """Check if a move aims at an enemy and return 1.0 or 0.0."""
+    dx, dy = DIRS[move]
+    cx, cy = my_pos[0] + dx, my_pos[1] + dy
+    while 0 <= cx < map_w and 0 <= cy < map_h:
+        if (cx, cy) in walls:
+            return 0.0
+        if (cx, cy) in enemies_pos:
+            return 1.0
+        cx += dx
+        cy += dy
+    return 0.0
 
