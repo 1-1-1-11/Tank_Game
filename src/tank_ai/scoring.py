@@ -118,7 +118,7 @@ def score_candidate_1v1(move, my_pos, my_name, bullets, enemies_pos, map_w, map_
         score += mobility_map[nx][ny] * MOBILITY_WEIGHT_1V1
 
         # Circle bonus (clockwise movement around the map)
-        if last_action and move == CLOCKWISE_NEXT.get(last_action):
+        if last_action and move == CLOCKWISE_NEXT[last_action]:
             score += CIRCLE_BONUS_1V1
 
     return score

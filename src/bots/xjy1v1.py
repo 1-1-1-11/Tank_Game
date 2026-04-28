@@ -32,7 +32,7 @@ class TankAI:
 
     def _rebuild_static_maps(self, w, h, walls):
         self.static_walls = walls
-        self.mobility_map = [[0] * h for _ in range(w)]
+        self.mobility_map = [[0] * w for _ in range(h)]
         self.trap_lookup = {}
         for x in range(w):
             for y in range(h):
@@ -113,6 +113,8 @@ class TankAI:
             return candidates[0][1]
 
         except Exception:
+            import traceback
+            traceback.print_exc()
             return "UP"
 
 

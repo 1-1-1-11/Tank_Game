@@ -30,7 +30,7 @@ def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
 
 def get_danger_map(walls, bullets, my_name, map_w, map_h, danger_penalty=5000.0):
     """Build a 2D danger map accumulating danger from bullet paths."""
-    dmap = [[0.0] * map_h for _ in range(map_w)]
+    dmap = [[0.0] * map_w for _ in range(map_h)]
 
     for b in bullets:
         if b["owner"] == my_name:
@@ -43,7 +43,7 @@ def get_danger_map(walls, bullets, my_name, map_w, map_h, danger_penalty=5000.0)
         while 0 <= cx < map_w and 0 <= cy < map_h:
             if (cx, cy) in walls:
                 break
-            dmap[cx][cy] += danger_penalty
+            dmap[cy][cx] += danger_penalty
             cx += bdx
             cy += bdy
 
