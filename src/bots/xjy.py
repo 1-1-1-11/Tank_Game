@@ -27,6 +27,8 @@ class TankAI:
     walls: Set[Tuple[int, int]]
     static_map_initialized: bool
     memo_depth: dict
+    _danger_map_cache: Optional[List[List[float]]]
+    _mobility_cache: dict
 
     def __init__(self) -> None:
         self.last_action = None
@@ -38,6 +40,8 @@ class TankAI:
         self.static_map_initialized = False
 
         self.memo_depth: dict = {}
+        self._danger_map_cache = None
+        self._mobility_cache = {}
 
     def _reset_state(self) -> None:
         self.last_action = None
@@ -57,6 +61,8 @@ class TankAI:
         self.map_h = h
         self.walls = current_walls
         self.static_map_initialized = True
+        self._danger_map_cache = None
+        self._mobility_cache = {}
 
     def _is_valid_move(self, x: int, y: int, move: str, check_reverse: bool = True) -> bool:
         return is_valid_move(
@@ -101,7 +107,9 @@ class TankAI:
         )
 
     def _bfs_mobility(self, start_pos: Tuple[int, int]) -> int:
-        return bfs_mobility(start_pos, self.map_w, self.map_h, self.walls)
+        if start_pos not in self._mobility_cache:
+            self._mobility_cache[start_pos] = bfs_mobility(start_pos, self.map_w, self.map_h, self.walls)
+        return self._mobility_cache[start_pos]
 
     def _is_aiming_enemy(
         self,
@@ -143,6 +151,7 @@ class TankAI:
                     self.map_h,
                     self.walls,
                     self.last_action,
+                    mobility_cache=self._mobility_cache,
                 )
                 candidates.append((score, move))
 

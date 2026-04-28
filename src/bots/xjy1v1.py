@@ -32,6 +32,8 @@ class TankAI:
     mobility_map: Optional[List[List[int]]]
     trap_lookup: dict
     _dfs_memo: dict
+    _danger_map_cache: Optional[List[List[float]]]
+    _last_bullets_hash: Optional[int]
 
     def __init__(self) -> None:
         self.last_action = None
@@ -40,6 +42,8 @@ class TankAI:
         self.mobility_map: Optional[List[List[int]]] = None
         self.trap_lookup: dict = {}
         self._dfs_memo: dict = {}
+        self._danger_map_cache = None
+        self._last_bullets_hash = None
 
     def _rebuild_static_maps(
         self,
@@ -95,6 +99,10 @@ class TankAI:
         self._dfs_memo[state] = can_escape
         return can_escape
 
+    def _compute_bullets_hash(self, bullets: List[Dict[str, Any]]) -> int:
+        """Compute a hash of bullet positions and directions for cache invalidation."""
+        return hash(tuple((b["x"], b["y"], b["dx"], b["dy"]) for b in bullets))
+
     def get_action(self, state: Dict[str, Any]) -> str:
         try:
             me = state["self"]
@@ -110,11 +118,18 @@ class TankAI:
             my_pos = (me["x"], me["y"])
             enemies = alive_enemies(state, me["name"])
             enemies_pos = enemy_positions(enemies)
+            bullets = state["bullets"]
+            bullets_hash = self._compute_bullets_hash(bullets)
 
             if self.static_walls != walls:
                 self._rebuild_static_maps(w, h, walls)
+                self._danger_map_cache = None
 
-            danger_map = get_danger_map(walls, state["bullets"], me["name"], w, h)
+            if self._danger_map_cache is None or self._last_bullets_hash != bullets_hash:
+                self._danger_map_cache = get_danger_map(walls, bullets, me["name"], w, h)
+                self._last_bullets_hash = bullets_hash
+
+            danger_map = self._danger_map_cache
 
             candidates = []
             for move in DIR_LIST:
@@ -122,7 +137,7 @@ class TankAI:
                     move,
                     my_pos,
                     me["name"],
-                    state["bullets"],
+                    bullets,
                     enemies_pos,
                     w,
                     h,

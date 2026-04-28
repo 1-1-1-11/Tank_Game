@@ -67,6 +67,7 @@ def score_candidate(
     map_h: int,
     walls: Set[Tuple[int, int]],
     last_action: Optional[str],
+    mobility_cache: Optional[dict] = None,
 ) -> float:
     """Score a candidate move for the main bot."""
     my_x, my_y = my_pos
@@ -90,7 +91,13 @@ def score_candidate(
         if (nx, ny) in enemies_pos:
             score -= 500.0
 
-        mobility: int = bfs_mobility((nx, ny), map_w, map_h, walls)
+        pos_key = (nx, ny)
+        if mobility_cache is not None and pos_key in mobility_cache:
+            mobility = mobility_cache[pos_key]
+        else:
+            mobility = bfs_mobility(pos_key, map_w, map_h, walls)
+            if mobility_cache is not None:
+                mobility_cache[pos_key] = mobility
         score += mobility * WEIGHT_MOBILITY
 
         dist_center: int = abs(nx - map_w // 2) + abs(ny - map_h // 2)
