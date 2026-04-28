@@ -36,39 +36,45 @@ def test_dead_bot_returns_up_without_updating_last_action():
 
 
 def test_fallback_prefers_non_wall_non_boundary_when_only_reverse_is_open():
-    """When only reverse direction is open, bot should pick valid move, not reverse."""
+    """When reverse is blocked by wall, bot should pick perpendicular direction not reverse."""
     ai = TankAI()
     ai.last_action = "RIGHT"
     ai.was_alive = True
 
-    # Map where only LEFT (reverse of RIGHT) is valid
-    result = ai.get_action(make_state(1, 0))
+    # 3x3 map, bot at (1,1), wall at (0,1) blocks LEFT (reverse of RIGHT)
+    # UP and DOWN are valid perpendicular moves, LEFT is blocked, RIGHT is forward
+    walls = [(0, 1)]
+    state = make_state(1, 1, walls=walls, width=3, height=3)
 
-    # Should not pick LEFT (reverse of RIGHT), should pick something valid
-    assert result != "LEFT" or result == "LEFT"  # Either way it must be valid
+    ai._rebuild_static_maps(3, 3, set(walls))
+
+    result = ai.get_action(state)
+
+    # Bot should NOT pick LEFT (reverse), should pick UP, DOWN, or RIGHT (forward)
+    assert result != "LEFT", f"Expected not LEFT (reverse blocked), got {result}"
 
 
 def test_survival_decisions_avoid_known_traps():
     """Bot should avoid directions that lead to dead ends (traps)."""
     ai = TankAI()
+    ai.last_action = "RIGHT"
     ai.was_alive = True
 
-    # Create a map with a dead end:
-    # - Bot at (1, 0)
-    # - Wall at (0, 0) creating a dead end if bot goes LEFT
-    # - UP leads to open space
-    walls = [(0, 0)]
-    state = make_state(1, 0, walls=walls, width=3, height=2)
-    state["walls"] = walls
+    # Create a map with a dead end at (0,2):
+    # - Bot at (1, 2)
+    # - Walls at (0,1) and (0,3) make (0,2) a dead end (only exit is back to 1,2)
+    # - Going LEFT (reverse) leads to dead end, should be marked as trap
+    walls = [(0, 1), (0, 3)]
+    state = make_state(1, 2, walls=walls, width=3, height=4)
 
-    ai._rebuild_static_maps(3, 2, set(walls))
+    ai._rebuild_static_maps(3, 4, set(walls))
 
-    # The trap_lookup should mark LEFT from (1, 0) as a trap
-    # since going LEFT would lead to a dead end
+    # The trap_lookup should mark LEFT from (1, 2) as a trap
+    # since going LEFT leads to (0,2) which is a dead end
     result = ai.get_action(state)
 
-    # Bot should not go LEFT into the trap, should prefer UP or RIGHT
-    assert result in ["UP", "RIGHT"], f"Expected UP or RIGHT, got {result}"
+    # Bot should not go LEFT into the trap, should prefer UP, DOWN, or RIGHT
+    assert result != "LEFT", f"Expected not LEFT (trap), got {result}"
 
 
 def test_circle_movement_bonus_for_clockwise_next_direction():
@@ -80,7 +86,6 @@ def test_circle_movement_bonus_for_clockwise_next_direction():
     # Bot at (1, 1) in a 3x3 open map
     walls = []
     state = make_state(1, 1, walls=walls, width=3, height=3)
-    state["walls"] = walls
 
     ai._rebuild_static_maps(3, 3, set(walls))
 
