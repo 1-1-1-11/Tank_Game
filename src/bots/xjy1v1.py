@@ -89,7 +89,7 @@ class TankAI:
             if self.static_walls != walls:
                 self._rebuild_static_maps(w, h, walls)
 
-            danger_map = get_danger_map(state["bullets"], me["name"], w, h, walls)
+            danger_map = get_danger_map(walls, state["bullets"], me["name"], w, h)
 
             candidates = []
             for move in DIR_LIST:

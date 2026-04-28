@@ -28,7 +28,7 @@ def will_hit_bullet(my_next_pos, bullets, my_name, map_w, map_h, walls):
     return False
 
 
-def get_danger_map(bullets, my_name, map_w, map_h, walls, danger_penalty=5000.0):
+def get_danger_map(walls, bullets, my_name, map_w, map_h, danger_penalty=5000.0):
     """Build a 2D danger map accumulating danger from bullet paths."""
     dmap = [[0.0] * map_h for _ in range(map_w)]
 
