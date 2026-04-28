@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -14,6 +15,8 @@ from tank_ai.rules import is_valid_move
 from tank_ai.scoring import is_aiming_enemy, score_candidate
 from tank_ai.state import alive_enemies, enemy_positions, walls_set
 from tank_ai.traps import get_survival_depth
+
+logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s: %(message)s")
 
 
 class TankAI:
@@ -159,6 +162,7 @@ class TankAI:
             return best_move
 
         except Exception:
+            logging.exception("TankAI.get_action error")
             return "UP"
 
 
@@ -181,5 +185,6 @@ if __name__ == "__main__":
             print(action)
             sys.stdout.flush()
         except Exception:
+            logging.exception("TankAI I/O loop error")
             print("UP")
             sys.stdout.flush()

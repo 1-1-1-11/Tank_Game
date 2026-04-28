@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from collections import deque
 from pathlib import Path
@@ -20,6 +21,8 @@ from tank_ai.rules import is_valid_move
 from tank_ai.scoring import score_candidate_1v1
 from tank_ai.state import alive_enemies, enemy_positions, walls_set
 from tank_ai.traps import get_survival_depth
+
+logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s: %(message)s")
 
 
 class TankAI:
@@ -135,8 +138,7 @@ class TankAI:
             return candidates[0][1]
 
         except Exception:
-            import traceback
-            traceback.print_exc()
+            logging.exception("TankAI.get_action error")
             return "UP"
 
 
@@ -160,5 +162,6 @@ if __name__ == "__main__":
             sys.stdout.flush()
             ai.last_action = action
         except Exception:
+            logging.exception("TankAI.get_action error")
             print("UP")
             sys.stdout.flush()
